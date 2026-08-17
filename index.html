@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>WebChord</title>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <main class="webchord">
+
+        <header class="webchord__header">
+            <h1>WebChord</h1>
+            <p>Sintetizador de acordes</p>
+        </header>
+
+
+        <!-- Controles principales -->
+        <section class="controls">
+
+            <div class="control">
+                <label for="tonalidad">Tonalidad</label>
+
+                <select id="tonalidad">
+                    <option value="C">C</option>
+                    <option value="C#">C#</option>
+                    <option value="D">D</option>
+                    <option value="D#">D#</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                    <option value="F#">F#</option>
+                    <option value="G">G</option>
+                    <option value="G#">G#</option>
+                    <option value="A">A</option>
+                    <option value="A#">A#</option>
+                    <option value="B">B</option>
+                </select>
+            </div>
+
+
+            <div class="control">
+                <label for="onda">Sonido</label>
+
+                <select id="onda">
+                    <option value="triangle">Triangle</option>
+                    <option value="sine">Sine</option>
+                    <option value="square">Square</option>
+                    <option value="sawtooth">Sawtooth</option>
+                </select>
+            </div>
+
+
+            <div class="control">
+                <label for="volumen">Volumen</label>
+
+                <input
+                    type="range"
+                    id="volumen"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value="0.5"
+                >
+            </div>
+
+        </section>
+
+
+        <!-- Indicador de tonalidad -->
+        <section class="tonalidad-actual">
+
+            <span>Tonalidad actual</span>
+
+            <strong id="tonalidadActual">C</strong>
+
+        </section>
+
+
+        <!-- Botones de acordes -->
+        <section class="acordes">
+
+            <button class="acorde" data-grado="0">
+                <span class="acorde__numero">1</span>
+                <span class="acorde__nombre">C</span>
+            </button>
+
+            <button class="acorde" data-grado="1">
+                <span class="acorde__numero">2</span>
+                <span class="acorde__nombre">Dm</span>
+            </button>
+
+            <button class="acorde" data-grado="2">
+                <span class="acorde__numero">3</span>
+                <span class="acorde__nombre">Em</span>
+            </button>
+
+            <button class="acorde" data-grado="3">
+                <span class="acorde__numero">4</span>
+                <span class="acorde__nombre">F</span>
+            </button>
+
+            <button class="acorde" data-grado="4">
+                <span class="acorde__numero">5</span>
+                <span class="acorde__nombre">G</span>
+            </button>
+
+            <button class="acorde" data-grado="5">
+                <span class="acorde__numero">6</span>
+                <span class="acorde__nombre">Am</span>
+            </button>
+
+            <button class="acorde" data-grado="6">
+                <span class="acorde__numero">7</span>
+                <span class="acorde__nombre">Bdim</span>
+            </button>
+
+        </section>
+
+
+        <!-- Joystick -->
+        <div class="joystick-container">
+
+            <div class="joystick" id="joystick">
+        
+                <div class="joystick__direcciones">
+        
+                    <span class="arriba">↑</span>
+        
+                    <span class="abajo">↓</span>
+        
+                    <span class="izquierda">←</span>
+        
+                    <span class="derecha">→</span>
+        
+                </div>
+        
+        
+                <div class="joystick__palanca" id="joystickPalanca">
+                </div>
+        
+            </div>
+        
+        </div>
+
+
+        <!-- Estado -->
+        <section class="estado">
+
+            <span id="estadoTexto">
+                Selecciona un acorde
+            </span>
+
+        </section>
+
+    </main>
+
+
+    <script src="chords.js"></script>
+    <script src="synth.js"></script>
+    <script src="app.js"></script>
+
+</body>
+</html>

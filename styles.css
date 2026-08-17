@@ -1,0 +1,654 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --fondo: #111318;
+    --panel: #1b1e26;
+    --panel-secundario: #242833;
+    --borde: #343946;
+
+    --texto: #f4f5f7;
+    --texto-secundario: #9da3b0;
+
+    --acento: #6c7cff;
+    --acento-hover: #8290ff;
+    --acento-activo: #5264e8;
+
+    --sombra:
+        0 12px 30px rgba(0, 0, 0, 0.35);
+
+    --radio: 16px;
+}
+
+
+/* =========================================================
+   Página
+   ========================================================= */
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+
+    background:
+        radial-gradient(
+            circle at top,
+            #202431 0%,
+            var(--fondo) 55%
+        );
+
+    color: var(--texto);
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    display: flex;
+    justify-content: center;
+
+    padding: 24px;
+}
+
+
+/* =========================================================
+   Instrumento
+   ========================================================= */
+
+.webchord {
+    width: 100%;
+    max-width: 900px;
+
+    background: var(--panel);
+
+    border: 1px solid var(--borde);
+
+    border-radius: 24px;
+
+    box-shadow: var(--sombra);
+
+    padding: 28px;
+}
+
+
+/* =========================================================
+   Encabezado
+   ========================================================= */
+
+.webchord__header {
+    text-align: center;
+
+    margin-bottom: 28px;
+}
+
+.webchord__header h1 {
+    font-size: 2rem;
+
+    font-weight: 700;
+
+    letter-spacing: -0.03em;
+}
+
+.webchord__header p {
+    color: var(--texto-secundario);
+
+    margin-top: 6px;
+
+    font-size: 0.95rem;
+}
+
+
+/* =========================================================
+   Controles
+   ========================================================= */
+
+.controls {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 14px;
+
+    margin-bottom: 22px;
+}
+
+.control {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.control label {
+    color: var(--texto-secundario);
+
+    font-size: 0.8rem;
+
+    font-weight: 600;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.06em;
+}
+
+
+/* Select */
+
+.control select {
+    width: 100%;
+
+    background: var(--panel-secundario);
+
+    color: var(--texto);
+
+    border: 1px solid var(--borde);
+
+    border-radius: 10px;
+
+    padding: 11px 12px;
+
+    font-size: 1rem;
+
+    outline: none;
+
+    cursor: pointer;
+}
+
+.control select:focus {
+    border-color: var(--acento);
+}
+
+
+/* Volumen */
+
+.control input[type="range"] {
+    width: 100%;
+
+    height: 38px;
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   Tonalidad actual
+   ========================================================= */
+
+.tonalidad-actual {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 12px;
+
+    margin-bottom: 24px;
+
+    color: var(--texto-secundario);
+}
+
+.tonalidad-actual strong {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 52px;
+
+    height: 42px;
+
+    background: var(--panel-secundario);
+
+    border: 1px solid var(--borde);
+
+    border-radius: 12px;
+
+    color: var(--texto);
+
+    font-size: 1.25rem;
+}
+
+
+/* =========================================================
+   Botones de acordes
+   ========================================================= */
+
+.acordes {
+    display: grid;
+
+    grid-template-columns:
+        repeat(7, 1fr);
+
+    gap: 10px;
+
+    margin-bottom: 36px;
+}
+
+/* =========================================================
+   Estados de los botones de acordes
+   ========================================================= */
+
+   .acorde {
+    position: relative;
+
+    min-height: 100px;
+
+    border: 1px solid var(--borde);
+
+    border-radius: var(--radio);
+
+    background:
+        linear-gradient(
+            180deg,
+            #292e39,
+            #20242d
+        );
+
+    color: var(--texto);
+
+    cursor: pointer;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    transition:
+        transform 0.08s ease,
+        background 0.12s ease,
+        border-color 0.12s ease,
+        box-shadow 0.12s ease;
+
+    user-select: none;
+
+    -webkit-user-select: none;
+
+    touch-action: manipulation;
+}
+
+
+/* ---------------------------------------------------------
+   Hover
+   --------------------------------------------------------- */
+
+.acorde:hover {
+    background:
+        linear-gradient(
+            180deg,
+            #303644,
+            #252a34
+        );
+
+    border-color: #454b5a;
+
+    transform: translateY(-2px);
+}
+
+
+/* ---------------------------------------------------------
+   Click físico del navegador
+   --------------------------------------------------------- */
+
+.acorde:active {
+    transform:
+        translateY(2px)
+        scale(0.98);
+}
+
+
+/* ---------------------------------------------------------
+   BOTÓN ACTIVO
+   --------------------------------------------------------- */
+
+.acorde.acorde--activo {
+    background:
+        linear-gradient(
+            180deg,
+            var(--acento-hover),
+            var(--acento-activo)
+        );
+
+    color: #ffffff;
+
+    border-color: var(--acento);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(108, 124, 255, 0.35),
+
+        0 0 25px
+        rgba(108, 124, 255, 0.45),
+
+        inset 0 3px 8px
+        rgba(0, 0, 0, 0.25);
+
+    transform:
+        translateY(2px)
+        scale(0.98);
+}
+
+
+/* ---------------------------------------------------------
+   Texto del botón activo
+   --------------------------------------------------------- */
+
+.acorde.acorde--activo .acorde__numero {
+    color:
+        rgba(255, 255, 255, 0.8);
+}
+
+.acorde.acorde--activo .acorde__nombre {
+    color: #ffffff;
+}
+
+/* Número */
+
+.acorde__numero {
+    color: var(--texto-secundario);
+
+    font-size: 0.75rem;
+
+    font-weight: 700;
+}
+
+
+/* Nombre */
+
+.acorde__nombre {
+    font-size: 1.15rem;
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   Joystick
+   ========================================================= */
+
+.joystick-container {
+    display: flex;
+
+    justify-content: center;
+
+    margin-bottom: 30px;
+}
+
+.joystick {
+    position: relative;
+
+    width: 220px;
+
+    height: 220px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            #292e39 0%,
+            #1d2028 65%,
+            #171920 100%
+        );
+
+    border: 1px solid var(--borde);
+
+    box-shadow:
+        inset 0 0 30px
+        rgba(0, 0, 0, 0.35),
+        0 10px 25px
+        rgba(0, 0, 0, 0.25);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    touch-action: none;
+
+    user-select: none;
+
+    -webkit-user-select: none;
+}
+
+
+/* Direcciones */
+
+.joystick__direcciones {
+    position: absolute;
+
+    inset: 0;
+
+    pointer-events: none;
+
+    color: #646b79;
+
+    font-size: 1.1rem;
+
+    font-weight: 700;
+}
+
+.joystick__direcciones span {
+    position: absolute;
+}
+
+.joystick__direcciones .arriba {
+    top: 14px;
+
+    left: 50%;
+
+    transform:
+        translateX(-50%);
+}
+
+.joystick__direcciones .abajo {
+    bottom: 14px;
+
+    left: 50%;
+
+    transform:
+        translateX(-50%);
+}
+
+.joystick__direcciones .izquierda {
+    left: 14px;
+
+    top: 50%;
+
+    transform:
+        translateY(-50%);
+}
+
+.joystick__direcciones .derecha {
+    right: 14px;
+
+    top: 50%;
+
+    transform:
+        translateY(-50%);
+}
+
+
+/* Palanca */
+
+.joystick__palanca {
+    position: relative;
+
+    width: 72px;
+
+    height: 72px;
+
+    border-radius: 50%;
+
+    background:
+        linear-gradient(
+            145deg,
+            #7d8cff,
+            #5365e8
+        );
+
+    border: 2px solid
+        rgba(255, 255, 255, 0.15);
+
+    box-shadow:
+        0 8px 18px
+        rgba(0, 0, 0, 0.4);
+
+    cursor: grab;
+
+    transition:
+        transform 0.08s ease;
+}
+
+.joystick__palanca:active {
+    cursor: grabbing;
+}
+
+
+/* =========================================================
+   Estado
+   ========================================================= */
+
+.estado {
+    min-height: 42px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 10px 16px;
+
+    background: var(--panel-secundario);
+
+    border: 1px solid var(--borde);
+
+    border-radius: 12px;
+
+    color: var(--texto-secundario);
+
+    font-size: 0.9rem;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   Tablets
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    body {
+        padding: 12px;
+    }
+
+    .webchord {
+        padding: 20px;
+
+        border-radius: 20px;
+    }
+
+    .controls {
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .control:last-child {
+        grid-column:
+            1 / -1;
+    }
+
+    .acordes {
+        grid-template-columns:
+            repeat(4, 1fr);
+    }
+
+}
+
+
+/* =========================================================
+   Teléfonos
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    body {
+        padding: 0;
+    }
+
+    .webchord {
+        min-height: 100vh;
+
+        border-radius: 0;
+
+        border-left: 0;
+        border-right: 0;
+
+        padding: 18px 14px;
+    }
+
+    .webchord__header {
+        margin-bottom: 22px;
+    }
+
+    .webchord__header h1 {
+        font-size: 1.65rem;
+    }
+
+    .controls {
+        grid-template-columns: 1fr;
+
+        gap: 10px;
+    }
+
+    .control:last-child {
+        grid-column: auto;
+    }
+
+    .acordes {
+        grid-template-columns:
+            repeat(2, 1fr);
+
+        gap: 10px;
+
+        margin-bottom: 28px;
+    }
+
+    .acorde {
+        min-height: 86px;
+    }
+
+    .acorde__nombre {
+        font-size: 1.05rem;
+    }
+
+    .joystick {
+        width: 190px;
+
+        height: 190px;
+    }
+
+    .joystick__palanca {
+        width: 64px;
+
+        height: 64px;
+    }
+
+}
