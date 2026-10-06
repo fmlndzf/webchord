@@ -53,7 +53,7 @@ body {
     display: flex;
     justify-content: center;
 
-    padding: 24px;
+    padding: 12px;
 }
 
 
@@ -73,7 +73,7 @@ body {
 
     box-shadow: var(--sombra);
 
-    padding: 28px;
+    padding: 16px;
 }
 
 
@@ -85,6 +85,8 @@ body {
     text-align: center;
 
     margin-bottom: 28px;
+
+    user-select: none;
 }
 
 .webchord__header h1 {
@@ -93,6 +95,8 @@ body {
     font-weight: 700;
 
     letter-spacing: -0.03em;
+
+    user-select: none;
 }
 
 .webchord__header p {
@@ -101,6 +105,8 @@ body {
     margin-top: 6px;
 
     font-size: 0.95rem;
+
+    user-select: none;
 }
 
 
@@ -117,6 +123,8 @@ body {
     gap: 14px;
 
     margin-bottom: 22px;
+
+    user-select: none;
 }
 
 .control {
@@ -125,6 +133,8 @@ body {
     flex-direction: column;
 
     gap: 8px;
+
+    user-select: none;
 }
 
 .control label {
@@ -137,6 +147,8 @@ body {
     text-transform: uppercase;
 
     letter-spacing: 0.06em;
+
+    user-select: none;
 }
 
 
@@ -160,6 +172,8 @@ body {
     outline: none;
 
     cursor: pointer;
+
+    user-select: none;
 }
 
 .control select:focus {
@@ -175,63 +189,85 @@ body {
     height: 38px;
 
     cursor: pointer;
+
+    user-select: none;
 }
 
+.instrumento {
+    display: grid;
 
-/* =========================================================
-   Tonalidad actual
-   ========================================================= */
+    grid-template-columns: 220px 1fr;
 
-.tonalidad-actual {
-    display: flex;
+    gap: 30px;
 
     align-items: center;
 
-    justify-content: center;
-
-    gap: 12px;
-
-    margin-bottom: 24px;
-
-    color: var(--texto-secundario);
+    margin-bottom: 36px;
 }
 
-.tonalidad-actual strong {
+
+/* Joystick */
+
+.joystick-container {
     display: flex;
 
-    align-items: center;
-
     justify-content: center;
 
-    min-width: 52px;
-
-    height: 42px;
-
-    background: var(--panel-secundario);
-
-    border: 1px solid var(--borde);
-
-    border-radius: 12px;
-
-    color: var(--texto);
-
-    font-size: 1.25rem;
+    margin-bottom: 0;
 }
 
 
-/* =========================================================
-   Botones de acordes
-   ========================================================= */
+/* Botones */
 
 .acordes {
     display: grid;
 
     grid-template-columns:
-        repeat(7, 1fr);
+        repeat(12, 1fr);
 
     gap: 10px;
 
-    margin-bottom: 36px;
+    margin-bottom: 0;
+
+    user-select: none;
+}
+
+
+/* Fila superior: 3 teclas */
+
+.acorde-2 {
+    grid-column: 1 / span 4;
+}
+
+.acorde-4 {
+    grid-column: 5 / span 4;
+}
+
+.acorde-6 {
+    grid-column: 9 / span 4;
+}
+
+
+/* Fila inferior: 4 teclas */
+
+.acorde-1 {
+    grid-column: 1 / span 3;
+    grid-row: 2;
+}
+
+.acorde-3 {
+    grid-column: 4 / span 3;
+    grid-row: 2;
+}
+
+.acorde-5 {
+    grid-column: 7 / span 3;
+    grid-row: 2;
+}
+
+.acorde-7 {
+    grid-column: 10 / span 3;
+    grid-row: 2;
 }
 
 /* =========================================================
@@ -364,6 +400,8 @@ body {
     font-size: 0.75rem;
 
     font-weight: 700;
+
+    user-select: none;
 }
 
 
@@ -373,20 +411,14 @@ body {
     font-size: 1.15rem;
 
     font-weight: 700;
+
+    user-select: none;
 }
 
 
 /* =========================================================
    Joystick
    ========================================================= */
-
-.joystick-container {
-    display: flex;
-
-    justify-content: center;
-
-    margin-bottom: 30px;
-}
 
 .joystick {
     position: relative;
@@ -427,60 +459,109 @@ body {
 }
 
 
-/* Direcciones */
+/* =========================================================
+   Direcciones del joystick
+   ========================================================= */
 
-.joystick__direcciones {
+   .joystick__direcciones {
     position: absolute;
-
     inset: 0;
-
     pointer-events: none;
-
-    color: #646b79;
-
-    font-size: 1.1rem;
-
-    font-weight: 700;
 }
+
+
+/* Todas las líneas */
 
 .joystick__direcciones span {
     position: absolute;
+    width: 22px;
+    height: 3px;
+    left: 50%;
+    top: 50%;
+    background: #646b79;
+    border-radius: 3px;
 }
+
+
+/* =========================================================
+   8 DIRECCIONES
+   ========================================================= */
+
+/* ARRIBA */
 
 .joystick__direcciones .arriba {
-    top: 14px;
-
-    left: 50%;
-
     transform:
-        translateX(-50%);
+        translate(-50%, -50%)
+        translateY(-82px)
+        rotate(90deg);
 }
 
-.joystick__direcciones .abajo {
-    bottom: 14px;
 
-    left: 50%;
+/* ARRIBA - DERECHA */
 
+.joystick__direcciones .diagonal-1 {
     transform:
-        translateX(-50%);
+        translate(-50%, -50%)
+        translate(58px, -58px)
+        rotate(-45deg);
 }
 
-.joystick__direcciones .izquierda {
-    left: 14px;
 
-    top: 50%;
-
-    transform:
-        translateY(-50%);
-}
+/* DERECHA */
 
 .joystick__direcciones .derecha {
-    right: 14px;
-
-    top: 50%;
-
     transform:
-        translateY(-50%);
+        translate(-50%, -50%)
+        translateX(82px);
+}
+
+
+/* ABAJO - DERECHA */
+
+.joystick__direcciones .diagonal-2 {
+    transform:
+        translate(-50%, -50%)
+        translate(58px, 58px)
+        rotate(45deg);
+}
+
+
+/* ABAJO */
+
+.joystick__direcciones .abajo {
+    transform:
+        translate(-50%, -50%)
+        translateY(82px)
+        rotate(90deg);
+}
+
+
+/* ABAJO - IZQUIERDA */
+
+.joystick__direcciones .diagonal-3 {
+    transform:
+        translate(-50%, -50%)
+        translate(-58px, 58px)
+        rotate(-45deg);
+}
+
+
+/* IZQUIERDA */
+
+.joystick__direcciones .izquierda {
+    transform:
+        translate(-50%, -50%)
+        translateX(-82px);
+}
+
+
+/* ARRIBA - IZQUIERDA */
+
+.joystick__direcciones .diagonal-4 {
+    transform:
+        translate(-50%, -50%)
+        translate(-58px, -58px)
+        rotate(45deg);
 }
 
 
@@ -546,6 +627,8 @@ body {
     font-size: 0.9rem;
 
     text-align: center;
+
+    margin-bottom: 20px;
 }
 
 
@@ -650,5 +733,61 @@ body {
 
         height: 64px;
     }
+
+        /* Direcciones del joystick en teléfono */
+
+        .joystick__direcciones .arriba {
+            transform:
+                translate(-50%, -50%)
+                translateY(-68px)
+                rotate(90deg);
+        }
+    
+        .joystick__direcciones .diagonal-1 {
+            transform:
+                translate(-50%, -50%)
+                translate(48px, -48px)
+                rotate(-45deg);
+        }
+    
+        .joystick__direcciones .derecha {
+            transform:
+                translate(-50%, -50%)
+                translateX(68px);
+        }
+    
+        .joystick__direcciones .diagonal-2 {
+            transform:
+                translate(-50%, -50%)
+                translate(48px, 48px)
+                rotate(45deg);
+        }
+    
+        .joystick__direcciones .abajo {
+            transform:
+                translate(-50%, -50%)
+                translateY(68px)
+                rotate(90deg);
+        }
+    
+        .joystick__direcciones .diagonal-3 {
+            transform:
+                translate(-50%, -50%)
+                translate(-48px, 48px)
+                rotate(-45deg);
+        }
+    
+        .joystick__direcciones .izquierda {
+            transform:
+                translate(-50%, -50%)
+                translateX(-68px);
+        }
+    
+        .joystick__direcciones .diagonal-4 {
+            transform:
+                translate(-50%, -50%)
+                translate(-48px, -48px)
+                rotate(45deg);
+        }
 
 }

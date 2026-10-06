@@ -60,12 +60,6 @@ const controlVolumen =
     );
 
 
-const tonalidadActual =
-    document.getElementById(
-        "tonalidadActual"
-    );
-
-
 const estadoTexto =
     document.getElementById(
         "estadoTexto"
@@ -131,17 +125,6 @@ function actualizarBotonesAcordes() {
 }
 
 
-/* ---------------------------------------------------------
-   Actualizar indicador de tonalidad
-   --------------------------------------------------------- */
-
-function actualizarTonalidad() {
-
-    tonalidadActual.textContent =
-        estado.tonalidad;
-
-}
-
 
 /* ---------------------------------------------------------
    Mostrar estado
@@ -154,54 +137,50 @@ function mostrarEstado(texto) {
 
 }
 
-
 /* ---------------------------------------------------------
-   Reproducir acorde
+   Mostrar todos los acordes activos
    --------------------------------------------------------- */
 
-   async function tocarAcorde(grado) {
+   function mostrarAcordesActivos() {
 
-    const acorde =
-        obtenerAcorde(
-            estado.tonalidad,
-            grado
+    if (acordesPresionados.size === 0) {
+
+        mostrarEstado(
+            "Selecciona un acorde"
         );
 
-    if (!acorde) {
         return;
+
     }
 
 
-    estado.gradoActivo = grado;
+    const acordes =
+        [...acordesPresionados.values()]
+        .map(datos => {
+
+            const acordeModificado =
+                obtenerAcordeModificado(
+                    datos.acorde,
+                    joystickX,
+                    joystickY
+                );
 
 
-    // Guardamos siempre el acorde original
-    acordeBaseActual = acorde;
+            return (
+                `${acordeModificado.gradoRomano} · ` +
+                `${acordeModificado.nombre}`
+            );
 
-
-    /*
-     * Aplicar inmediatamente la posición
-     * actual del joystick.
-     */
-    const acordeModificado =
-        obtenerAcordeModificado(
-            acordeBaseActual,
-            joystickX,
-            joystickY
-        );
+        });
 
 
     mostrarEstado(
-        `${acordeModificado.gradoRomano} · ` +
-        `${acordeModificado.nombre}`
-    );
-
-
-    await reproducirAcorde(
-        acordeModificado.notas
+        acordes.join("     ")
     );
 
 }
+
+
 
 const NOTAS_CROMATICAS = [
     "C",
@@ -225,25 +204,19 @@ function notaDesdeRaiz(
 ) {
 
     const indice =
-        NOTAS_CROMATICAS.indexOf(
+        obtenerIndiceNota(
             raiz
         );
+
 
     if (indice === -1) {
         return raiz;
     }
 
 
-    const nuevoIndice =
-        (
-            indice +
-            semitonos
-        ) % 12;
-
-
-    return NOTAS_CROMATICAS[
-        nuevoIndice
-    ];
+    return obtenerNota(
+        indice + semitonos
+    );
 
 }
 
@@ -252,9 +225,19 @@ function notaSiguiente(
     semitonos
 ) {
 
-    return notaDesdeRaiz(
-        nota,
-        semitonos
+    const indice =
+        obtenerIndiceNota(
+            nota
+        );
+
+
+    if (indice === -1) {
+        return nota;
+    }
+
+
+    return obtenerNota(
+        indice + semitonos
     );
 
 }
@@ -270,14 +253,13 @@ function obtenerAcordeModificado(
     }
 
 
-    // La raíz está en la primera nota
     const raiz =
         acorde.notas[0];
 
 
     /*
      * -----------------------------------------------------
-     * Centro → acorde original
+     * CENTRO
      * -----------------------------------------------------
      */
 
@@ -287,8 +269,12 @@ function obtenerAcordeModificado(
     ) {
 
         return {
+
             ...acorde,
-            notas: [...acorde.notas]
+
+            notas:
+                [...acorde.notas]
+
         };
 
     }
@@ -296,22 +282,31 @@ function obtenerAcordeModificado(
 
     /*
      * -----------------------------------------------------
-     * Izquierda → menor
+     * ↖ ARRIBA - IZQUIERDA
+     *
+     * AUMENTADO
+     *
+     * C → Caug
      * -----------------------------------------------------
      */
 
-    if (x < -0.25) {
+    if (
+        x < -0.25 &&
+        y < -0.25
+    ) {
 
         return {
+
             ...acorde,
 
             notas:
-                convertirAcordeMenor(
+                convertirAcordeAumentado(
                     acorde
                 ),
 
             nombre:
-                `${raiz}m`
+                `${raiz}aug`
+
         };
 
     }
@@ -319,13 +314,267 @@ function obtenerAcordeModificado(
 
     /*
      * -----------------------------------------------------
-     * Derecha → dominante 7
+     * ↗ ARRIBA - DERECHA
+     *
+     * DOMINANTE 7
+     *
+     * C → C7
      * -----------------------------------------------------
      */
 
-    if (x > 0.25) {
+    if (
+        x > 0.25 &&
+        y < -0.25
+    ) {
 
         return {
+
+            ...acorde,
+
+            notas:
+                convertirAcordeDominante7(
+                    acorde
+                ),
+
+            nombre:
+                `${raiz}7`
+
+        };
+
+    }
+
+
+    /*
+     * -----------------------------------------------------
+     * ↙ ABAJO - IZQUIERDA
+     *
+     * MAYOR → 6
+     * MENOR → sus2
+     * -----------------------------------------------------
+     */
+
+    if (
+        x < -0.25 &&
+        y > 0.25
+    ) {
+
+        const notas =
+            convertirAcordeSextaSus2(
+                acorde
+            );
+
+
+        const nombre =
+            acorde.tipo === "m"
+
+                ? `${raiz}sus2`
+
+                : `${raiz}6`;
+
+
+        return {
+
+            ...acorde,
+
+            notas:
+                notas,
+
+            nombre:
+                nombre
+
+        };
+
+    }
+
+
+    /*
+     * -----------------------------------------------------
+     * ↘ ABAJO - DERECHA
+     *
+     * 9ª
+     *
+     * C → Cadd9
+     * -----------------------------------------------------
+     */
+
+    if (
+        x > 0.25 &&
+        y > 0.25
+    ) {
+
+        return {
+
+            ...acorde,
+
+            notas:
+                convertirAcordeAdd9(
+                    acorde
+                ),
+
+            nombre:
+                `${raiz}add9`
+
+        };
+
+    }
+
+
+    /*
+     * -----------------------------------------------------
+     * ↑ ARRIBA
+     *
+     * FLIP MAYOR ↔ MENOR
+     * -----------------------------------------------------
+     */
+
+    if (
+        Math.abs(x) <= 0.25 &&
+        y < -0.25
+    ) {
+
+        /*
+         * Si el acorde es mayor,
+         * convertirlo en menor.
+         */
+
+        if (
+            acorde.tipo === ""
+        ) {
+
+            return {
+
+                ...acorde,
+
+                notas:
+                    convertirAcordeMenor(
+                        acorde
+                    ),
+
+                nombre:
+                    `${raiz}m`
+
+            };
+
+        }
+
+
+        /*
+         * Si el acorde es menor,
+         * convertirlo en mayor.
+         */
+
+        if (
+            acorde.tipo === "m"
+        ) {
+
+            return {
+
+                ...acorde,
+
+                notas:
+                    convertirAcordeMayor(
+                        acorde
+                    ),
+
+                nombre:
+                    `${raiz}`
+
+            };
+
+        }
+
+
+        return acorde;
+
+    }
+
+
+    /*
+     * -----------------------------------------------------
+     * ← IZQUIERDA
+     *
+     * MAYOR → MENOR
+     * MENOR → DISMINUIDO
+     *
+     * -----------------------------------------------------
+     */
+
+    if (
+        x < -0.25 &&
+        Math.abs(y) <= 0.25
+    ) {
+
+        /*
+         * Mayor → menor
+         */
+
+        if (
+            acorde.tipo === ""
+        ) {
+
+            return {
+
+                ...acorde,
+
+                notas:
+                    convertirAcordeMenor(
+                        acorde
+                    ),
+
+                nombre:
+                    `${raiz}m`
+
+            };
+
+        }
+
+
+        /*
+         * Menor → disminuido
+         */
+
+        if (
+            acorde.tipo === "m"
+        ) {
+
+            return {
+
+                ...acorde,
+
+                notas:
+                    convertirAcordeDisminuido(
+                        acorde
+                    ),
+
+                nombre:
+                    `${raiz}dim`
+
+            };
+
+        }
+
+
+        return acorde;
+
+    }
+
+
+    /*
+     * -----------------------------------------------------
+     * → DERECHA
+     *
+     * MAYOR → Maj7
+     * MENOR → m7
+     * -----------------------------------------------------
+     */
+
+    if (
+        x > 0.25 &&
+        Math.abs(y) <= 0.25
+    ) {
+
+        return {
+
             ...acorde,
 
             notas:
@@ -334,7 +583,13 @@ function obtenerAcordeModificado(
                 ),
 
             nombre:
-                `${raiz}7`
+
+                acorde.tipo === "m"
+
+                    ? `${raiz}m7`
+
+                    : `${raiz}maj7`
+
         };
 
     }
@@ -342,36 +597,19 @@ function obtenerAcordeModificado(
 
     /*
      * -----------------------------------------------------
-     * Arriba → mayor 7
+     * ↓ ABAJO
+     *
+     * SUS4
      * -----------------------------------------------------
      */
 
-    if (y < -0.25) {
+    if (
+        Math.abs(x) <= 0.25 &&
+        y > 0.25
+    ) {
 
         return {
-            ...acorde,
 
-            notas:
-                convertirAcordeMaj7(
-                    acorde
-                ),
-
-            nombre:
-                `${raiz}maj7`
-        };
-
-    }
-
-
-    /*
-     * -----------------------------------------------------
-     * Abajo → sus4
-     * -----------------------------------------------------
-     */
-
-    if (y > 0.25) {
-
-        return {
             ...acorde,
 
             notas:
@@ -381,13 +619,77 @@ function obtenerAcordeModificado(
 
             nombre:
                 `${raiz}sus4`
+
         };
 
     }
 
 
     return acorde;
+
 }
+
+function convertirAcordeMayor(acorde) {
+
+    const notas =
+        [...acorde.notas];
+
+
+    if (notas.length < 3) {
+        return notas;
+    }
+
+
+    const tercera =
+        notaSiguiente(
+            notas[1],
+            1
+        );
+
+
+    return [
+
+        notas[0],
+
+        tercera,
+
+        notas[2]
+
+    ];
+
+}
+
+function convertirAcordeDisminuido(acorde) {
+
+    const notas =
+        [...acorde.notas];
+
+
+    if (notas.length < 3) {
+        return notas;
+    }
+
+
+    const quinta =
+        notaSiguiente(
+            notas[2],
+            -1
+        );
+
+
+    return [
+
+        notas[0],
+
+        notas[1],
+
+        quinta
+
+    ];
+
+}
+
+
 
 function convertirAcordeMenor(acorde) {
 
@@ -497,6 +799,156 @@ function convertirAcordeSus4(acorde) {
     ];
 }
 
+function convertirAcordeAumentado(acorde) {
+
+    const notas =
+        [...acorde.notas];
+
+
+    if (notas.length < 3) {
+        return notas;
+    }
+
+
+    const quinta =
+        notaSiguiente(
+            notas[2],
+            1
+        );
+
+
+    return [
+
+        notas[0],
+
+        notas[1],
+
+        quinta
+
+    ];
+
+}
+
+function convertirAcordeDominante7(acorde) {
+
+    const notas =
+        [...acorde.notas];
+
+
+    if (notas.length < 3) {
+        return notas;
+    }
+
+
+    const septima =
+        notaDesdeRaiz(
+            notas[0],
+            10
+        );
+
+
+    return [
+
+        notas[0],
+
+        notas[1],
+
+        notas[2],
+
+        septima
+
+    ];
+
+}
+
+function convertirAcordeSextaSus2(acorde) {
+
+    const notas =
+        [...acorde.notas];
+
+
+    if (notas.length < 3) {
+        return notas;
+    }
+
+
+    /*
+     * Menor → sus2
+     */
+
+    if (
+        acorde.tipo === "m"
+    ) {
+
+        return [
+
+            notas[0],
+
+            notaDesdeRaiz(
+                notas[0],
+                2
+            ),
+
+            notas[2]
+
+        ];
+
+    }
+
+
+    /*
+     * Mayor → 6
+     */
+
+    return [
+
+        notas[0],
+
+        notas[1],
+
+        notas[2],
+
+        notaDesdeRaiz(
+            notas[0],
+            9
+        )
+
+    ];
+
+}
+
+function convertirAcordeAdd9(acorde) {
+
+    const notas =
+        [...acorde.notas];
+
+
+    if (notas.length < 3) {
+        return notas;
+    }
+
+
+    const novena =
+        notaDesdeRaiz(
+            notas[0],
+            14
+        );
+
+
+    return [
+
+        notas[0],
+
+        notas[1],
+
+        notas[2],
+
+        novena
+
+    ];
+
+}
+
 
 
 /* ---------------------------------------------------------
@@ -586,7 +1038,7 @@ function actualizarJoystick() {
      * No hay ningún acorde presionado.
      *
      * El joystick simplemente mantiene su posición.
-     */
+     
 
     if (
         acordesPresionados.size === 0
@@ -600,7 +1052,7 @@ function actualizarJoystick() {
         return;
 
     }
-
+*/
 
     /*
      * Modificar todos los acordes activos.
@@ -627,38 +1079,11 @@ function actualizarJoystick() {
 
 
     /*
-     * Mostrar el último acorde como
-     * referencia en el indicador de estado.
+     * Mostrar todos los acordes que continúan
+     * activos.
      */
 
-    const acordes =
-        Array.from(
-            acordesPresionados.values()
-        );
-
-
-    const ultimo =
-        acordes[
-            acordes.length - 1
-        ];
-
-
-    if (ultimo) {
-
-        const acordeModificado =
-            obtenerAcordeModificado(
-                ultimo.acorde,
-                joystickX,
-                joystickY
-            );
-
-
-        mostrarEstado(
-            `${acordeModificado.gradoRomano} · ` +
-            `${acordeModificado.nombre}`
-        );
-
-    }
+    mostrarAcordesActivos();
 
 }
 
@@ -703,29 +1128,11 @@ function reiniciarJoystick() {
 
 
     /*
-     * Mostrar el último acorde.
+     * Mostrar todos los acordes activos
+     * en su estado original.
      */
 
-    const acordes =
-        Array.from(
-            acordesPresionados.values()
-        );
-
-
-    const ultimo =
-        acordes[
-            acordes.length - 1
-        ];
-
-
-    if (ultimo) {
-
-        mostrarEstado(
-            `${ultimo.acorde.gradoRomano} · ` +
-            `${ultimo.acorde.nombre}`
-        );
-
-    }
+    mostrarAcordesActivos();
 
 }
 
@@ -896,25 +1303,16 @@ joystick.addEventListener(
          * Mostrar información del acorde.
          */
     
-        mostrarEstado(
-            `${acordeModificado.gradoRomano} · ` +
-            `${acordeModificado.nombre}`
-        );
+        mostrarAcordesActivos();
     
     }
     
     function liberarBotonAcorde(boton) {
 
-        if (!boton) {
-            return;
-        }
-    
-    
         const datos =
             acordesPresionados.get(
                 boton
             );
-    
     
         if (!datos) {
             return;
@@ -922,8 +1320,7 @@ joystick.addEventListener(
     
     
         /*
-         * Liberamos solamente el grupo
-         * perteneciente a este botón.
+         * Primero detener el sonido de ESTE acorde.
          */
     
         soltarAcordeGrupo(
@@ -932,7 +1329,18 @@ joystick.addEventListener(
     
     
         /*
-         * Desactivar visualmente el botón.
+         * IMPORTANTE:
+         * eliminarlo del Map antes de actualizar
+         * la barra de estado.
+         */
+    
+        acordesPresionados.delete(
+            boton
+        );
+    
+    
+        /*
+         * Quitar estado visual del botón.
          */
     
         boton.classList.remove(
@@ -941,12 +1349,11 @@ joystick.addEventListener(
     
     
         /*
-         * Eliminar el botón de los acordes activos.
+         * Ahora la barra de estado ya verá
+         * solamente los acordes que siguen activos.
          */
     
-        acordesPresionados.delete(
-            boton
-        );
+        mostrarAcordesActivos();
     
     }
 
@@ -1124,15 +1531,12 @@ document.addEventListener(
    Cambiar tonalidad
    --------------------------------------------------------- */
 
-selectorTonalidad.addEventListener(
+   selectorTonalidad.addEventListener(
     "change",
     evento => {
 
         estado.tonalidad =
             evento.target.value;
-
-
-        actualizarTonalidad();
 
         actualizarBotonesAcordes();
 
@@ -1140,8 +1544,9 @@ selectorTonalidad.addEventListener(
             `Tonalidad: ${estado.tonalidad}`
         );
 
-
         detenerTodosLosSonidos();
+
+        quitarFocoControles();
 
     }
 );
@@ -1164,6 +1569,8 @@ selectorOnda.addEventListener(
             `Sonido: ${evento.target.value}`
         );
 
+        quitarFocoControles();
+
     }
 );
 
@@ -1172,7 +1579,7 @@ selectorOnda.addEventListener(
    Cambiar volumen
    --------------------------------------------------------- */
 
-controlVolumen.addEventListener(
+   controlVolumen.addEventListener(
     "input",
     evento => {
 
@@ -1184,13 +1591,55 @@ controlVolumen.addEventListener(
 );
 
 
+controlVolumen.addEventListener(
+    "change",
+    () => {
+
+        controlVolumen.blur();
+
+    }
+);
+
+
+controlVolumen.addEventListener(
+    "pointerup",
+    () => {
+
+        controlVolumen.blur();
+
+    }
+);
+
+/* ---------------------------------------------------------
+   Quitar foco de los controles
+   --------------------------------------------------------- */
+
+   function quitarFocoControles() {
+
+    const elementoActivo =
+        document.activeElement;
+
+
+    if (
+        elementoActivo &&
+        (
+            elementoActivo === selectorTonalidad ||
+            elementoActivo === selectorOnda ||
+            elementoActivo === controlVolumen
+        )
+    ) {
+
+        elementoActivo.blur();
+
+    }
+
+}
+
 /* ---------------------------------------------------------
    Inicialización
    --------------------------------------------------------- */
 
 function iniciarAplicacion() {
-
-    actualizarTonalidad();
 
     actualizarBotonesAcordes();
 

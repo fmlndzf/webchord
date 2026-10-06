@@ -1,9 +1,14 @@
 /* =========================================================
-   WebChord
+   HiChord Web
    synth.js
 
    Motor de síntesis basado en Web Audio API
-   Soporte para múltiples acordes simultáneos
+
+   Sistema:
+   - Voces individuales
+   - Grupos de acordes independientes
+   - Polifonía entre botones
+   - Compatibilidad con funciones anteriores
    ========================================================= */
 
 
@@ -15,19 +20,50 @@
 
    let masterGain = null;
    
+   
+   /*
+    * Todas las voces que están siendo reproducidas.
+    *
+    * Se utiliza principalmente para poder detener
+    * completamente el motor cuando sea necesario.
+    */
+   
    let osciladoresActivos = [];
    
    
    /*
-    * Cada acorde tiene su propio grupo de voces.
+    * Acorde utilizado por las funciones antiguas
+    * de compatibilidad.
+    */
+   
+   let acordeActual = [];
+   
+   
+   /*
+    * ---------------------------------------------------------
+    * GRUPOS DE ACORDES
+    * ---------------------------------------------------------
     *
-    * Ejemplo:
+    * Cada botón tendrá su propio grupo:
+    *
+    * acorde-0
+    * acorde-1
+    * acorde-2
+    * ...
+    * acorde-6
+    *
+    * Cada grupo contiene un Map de voces.
     *
     * gruposAcordes
-    *   ├── boton-0 → C E G
-    *   ├── boton-1 → D F A
-    *   └── boton-4 → G B D
     *
+    *     acorde-0 → Map(...)
+    *     acorde-1 → Map(...)
+    *     acorde-4 → Map(...)
+    *
+    * Esto permite que varios acordes suenen
+    * simultáneamente y puedan liberarse
+    * de forma independiente.
+    * ---------------------------------------------------------
     */
    
    const gruposAcordes = new Map();
@@ -163,7 +199,7 @@
        }
    
    }
- 
+   
    
    /* ---------------------------------------------------------
       Crear una voz individual
@@ -187,6 +223,10 @@
            frecuencia;
    
    
+       /*
+        * Comenzamos en silencio.
+        */
+   
        gain.gain.setValueAtTime(
    
            0,
@@ -196,14 +236,9 @@
        );
    
    
-       oscilador.connect(
-           gain
-       );
+       oscilador.connect(gain);
    
-   
-       gain.connect(
-           masterGain
-       );
+       gain.connect(masterGain);
    
    
        const ahora =
@@ -211,7 +246,7 @@
    
    
        /*
-        * Ataque
+        * Ataque.
         */
    
        gain.gain.linearRampToValueAtTime(
@@ -241,6 +276,114 @@
    
    
    /* ---------------------------------------------------------
+      Liberar una voz
+      --------------------------------------------------------- */
+   
+   function liberarVoz(voz) {
+   
+       if (
+           !audioContext ||
+           !voz
+       ) {
+   
+           return;
+   
+       }
+   
+   
+       const ahora =
+           audioContext.currentTime;
+   
+   
+       try {
+   
+           voz.gain.gain.cancelScheduledValues(
+               ahora
+           );
+   
+   
+           const volumenActual =
+               Math.max(
+   
+                   voz.gain.gain.value,
+   
+                   0.001
+   
+               );
+   
+   
+           voz.gain.gain.setValueAtTime(
+   
+               volumenActual,
+   
+               ahora
+   
+           );
+   
+   
+           voz.gain.gain.exponentialRampToValueAtTime(
+   
+               0.001,
+   
+               ahora +
+               SYNTH_CONFIG.liberacion
+   
+           );
+   
+   
+           voz.oscilador.stop(
+   
+               ahora +
+               SYNTH_CONFIG.liberacion +
+               0.05
+   
+           );
+   
+   
+           setTimeout(() => {
+   
+               const indice =
+                   osciladoresActivos.indexOf(
+                       voz
+                   );
+   
+   
+               if (indice !== -1) {
+   
+                   osciladoresActivos.splice(
+   
+                       indice,
+   
+                       1
+   
+                   );
+   
+               }
+   
+           }, (
+   
+               SYNTH_CONFIG.liberacion +
+               0.1
+   
+           ) * 1000);
+   
+   
+       } catch (error) {
+   
+           console.warn(
+   
+               "Error liberando voz:",
+   
+               error
+   
+           );
+   
+       }
+   
+   }
+   
+   
+   /* ---------------------------------------------------------
       Reproducir una nota individual
       --------------------------------------------------------- */
    
@@ -248,7 +391,8 @@
    
        nota,
    
-       octava = SYNTH_CONFIG.octava
+       octava =
+           SYNTH_CONFIG.octava
    
    ) {
    
@@ -257,19 +401,26 @@
    
        const frecuencia =
            notaAFrecuencia(
+   
                nota,
+   
                octava
+   
            );
    
    
        if (!frecuencia) {
+   
            return null;
+   
        }
    
    
        const voz =
            crearVoz(
+   
                frecuencia
+   
            );
    
    
@@ -283,8 +434,13 @@
    }
    
    
+   /* =========================================================
+      SISTEMA DE GRUPOS DE ACORDES
+      ========================================================= */
+   
+   
    /* ---------------------------------------------------------
-      Reproducir un acorde independiente
+      Reproducir un grupo de acorde
       --------------------------------------------------------- */
    
    async function reproducirAcordeGrupo(
@@ -293,7 +449,8 @@
    
        notas,
    
-       octava = SYNTH_CONFIG.octava
+       octava =
+           SYNTH_CONFIG.octava
    
    ) {
    
@@ -301,17 +458,15 @@
    
    
        /*
-        * Si este grupo ya existe,
-        * liberarlo antes de reconstruirlo.
+        * Si el grupo ya existe,
+        * liberamos solamente ese grupo.
         */
    
        if (
            gruposAcordes.has(id)
        ) {
    
-           soltarAcordeGrupo(
-               id
-           );
+           soltarAcordeGrupo(id);
    
        }
    
@@ -320,19 +475,17 @@
            new Map();
    
    
-       /*
-        * Crear las voces correspondientes
-        * a las notas del acorde.
-        */
-   
        for (
            const nota of notas
        ) {
    
            const frecuencia =
                notaAFrecuencia(
+   
                    nota,
+   
                    octava
+   
                );
    
    
@@ -343,20 +496,28 @@
    
            const voz =
                crearVoz(
+   
                    frecuencia
+   
                );
    
    
            const clave =
                claveNota(
+   
                    nota,
+   
                    octava
+   
                );
    
    
            voces.set(
+   
                clave,
+   
                voz
+   
            );
    
    
@@ -366,10 +527,6 @@
    
        }
    
-   
-       /*
-        * Guardar el grupo completo.
-        */
    
        gruposAcordes.set(
    
@@ -383,15 +540,13 @@
    
    
    /* ---------------------------------------------------------
-      Liberar un acorde específico
+      Soltar un grupo de acorde
       --------------------------------------------------------- */
    
    function soltarAcordeGrupo(id) {
    
        const voces =
-           gruposAcordes.get(
-               id
-           );
+           gruposAcordes.get(id);
    
    
        if (!voces) {
@@ -399,12 +554,20 @@
        }
    
    
-       gruposAcordes.delete(
-           id
-       );
+       /*
+        * Primero eliminamos el grupo del Map.
+        */
    
+       gruposAcordes.delete(id);
+   
+   
+       /*
+        * Después liberamos únicamente
+        * sus voces.
+        */
    
        voces.forEach(
+   
            voz => {
    
                liberarVoz(
@@ -412,29 +575,28 @@
                );
    
            }
+   
        );
    
    }
    
    
    /* ---------------------------------------------------------
-      Actualizar un acorde específico
+      Actualizar un grupo de acorde
       ---------------------------------------------------------
    
-      Esta función mantiene las voces que continúan
-      siendo necesarias y solamente crea o libera
-      las notas que cambian.
+      Esta función permite cambiar las notas de un acorde
+      mientras otros grupos continúan sonando.
    
       Ejemplo:
    
-      C E G
+      acorde-0 → C E G
    
-      pasa a:
+      cambia a:
    
-      C E G B
+      acorde-0 → C E G B
    
-      solamente se crea B.
-   
+      Los demás grupos no son modificados.
       --------------------------------------------------------- */
    
    async function actualizarAcordeGrupo(
@@ -443,73 +605,55 @@
    
        notas,
    
-       octava = SYNTH_CONFIG.octava
+       octava =
+           SYNTH_CONFIG.octava
    
    ) {
    
        await activarAudio();
    
    
-       /*
-        * Buscar el grupo actual.
-        */
-   
-       let voces =
-           gruposAcordes.get(
-               id
-           );
+       const voces =
+           gruposAcordes.get(id);
    
    
        /*
-        * Si todavía no existe,
-        * simplemente crear el acorde.
+        * Si el grupo no existe,
+        * no hacemos nada.
         */
    
        if (!voces) {
-   
-           await reproducirAcordeGrupo(
-   
-               id,
-   
-               notas,
-   
-               octava
-   
-           );
-   
            return;
-   
        }
    
    
-       /*
-        * Construir las nuevas notas.
-        */
-   
        const nuevasNotas =
-           notas.map(
-               nota => ({
+           notas.map(nota => ({
    
-                   nota: nota,
+               nota: nota,
    
-                   octava: octava,
+               octava: octava,
    
-                   clave:
-                       claveNota(
-                           nota,
-                           octava
-                       )
+               clave:
+                   claveNota(
    
-               })
-           );
+                       nota,
+   
+                       octava
+   
+                   )
+   
+           }));
    
    
        const nuevasClaves =
            new Set(
    
                nuevasNotas.map(
+   
                    item =>
                        item.clave
+   
                )
    
            );
@@ -517,7 +661,8 @@
    
        /*
         * -----------------------------------------------------
-        * 1. Liberar notas que ya no pertenecen al acorde
+        * 1. Liberar notas que ya no pertenecen
+        *    al nuevo acorde.
         * -----------------------------------------------------
         */
    
@@ -548,138 +693,185 @@
    
        /*
         * -----------------------------------------------------
-        * 2. Crear solamente las notas nuevas
+        * 2. Crear las notas nuevas.
         * -----------------------------------------------------
         */
    
-       nuevasNotas.forEach(
-           item => {
+       nuevasNotas.forEach(item => {
    
-               if (
-                   voces.has(
-                       item.clave
-                   )
-               ) {
+           /*
+            * Si la nota ya estaba sonando,
+            * la conservamos.
+            */
    
-                   return;
+           if (
+               voces.has(
+                   item.clave
+               )
+           ) {
    
-               }
-   
-   
-               const frecuencia =
-                   notaAFrecuencia(
-   
-                       item.nota,
-   
-                       item.octava
-   
-                   );
-   
-   
-               if (!frecuencia) {
-                   return;
-               }
-   
-   
-               const voz =
-                   crearVoz(
-                       frecuencia
-                   );
-   
-   
-               voces.set(
-   
-                   item.clave,
-   
-                   voz
-   
-               );
-   
-   
-               osciladoresActivos.push(
-                   voz
-               );
+               return;
    
            }
-       );
    
    
-       /*
-        * Guardar nuevamente el grupo.
-        */
+           const frecuencia =
+               notaAFrecuencia(
    
-       gruposAcordes.set(
+                   item.nota,
    
-           id,
+                   item.octava
    
-           voces
-   
-       );
-   
-   }
+               );
    
    
-   /* ---------------------------------------------------------
-      Reproducir un acorde
-      ---------------------------------------------------------
+           if (!frecuencia) {
+               return;
+           }
    
-      Compatibilidad con el código anterior.
    
-      Esta función representa ahora un acorde
-      independiente identificado por un ID opcional.
+           const voz =
+               crearVoz(
    
-      --------------------------------------------------------- */
+                   frecuencia
    
-   async function reproducirAcorde(
+               );
    
-       notas,
    
-       octava = SYNTH_CONFIG.octava,
+           voces.set(
    
-       id = "acorde-principal"
+               item.clave,
    
-   ) {
+               voz
    
-       await reproducirAcordeGrupo(
+           );
    
-           id,
    
-           notas,
+           osciladoresActivos.push(
+               voz
+           );
    
-           octava
-   
-       );
+       });
    
    }
    
    
+   /* =========================================================
+      FUNCIONES DE COMPATIBILIDAD
+      ========================================================= */
+   
+   
    /* ---------------------------------------------------------
-      Actualizar un acorde
+      Actualizar acorde principal
       ---------------------------------------------------------
    
-      Compatibilidad con el código anterior.
+      Compatibilidad con el sistema anterior.
    
+      Se utiliza un grupo especial:
+   
+      "acorde-principal"
       --------------------------------------------------------- */
    
    async function actualizarAcorde(
    
        notas,
    
-       octava = SYNTH_CONFIG.octava,
-   
-       id = "acorde-principal"
+       octava =
+           SYNTH_CONFIG.octava
    
    ) {
    
-       await actualizarAcordeGrupo(
+       acordeActual =
+           [...notas];
    
-           id,
+   
+       await actualizarOReproducirGrupoCompatibilidad(
+   
+           "acorde-principal",
    
            notas,
    
            octava
    
        );
+   
+   }
+   
+   
+   /* ---------------------------------------------------------
+      Reproducir acorde
+      ---------------------------------------------------------
+   
+      Compatibilidad con código anterior.
+      --------------------------------------------------------- */
+   
+   async function reproducirAcorde(
+   
+       notas,
+   
+       octava =
+           SYNTH_CONFIG.octava
+   
+   ) {
+   
+       acordeActual =
+           [...notas];
+   
+   
+       await reproducirAcordeGrupo(
+   
+           "acorde-principal",
+   
+           notas,
+   
+           octava
+   
+       );
+   
+   }
+   
+   
+   /* ---------------------------------------------------------
+      Función auxiliar de compatibilidad
+      --------------------------------------------------------- */
+   
+   async function actualizarOReproducirGrupoCompatibilidad(
+   
+       id,
+   
+       notas,
+   
+       octava
+   
+   ) {
+   
+       if (
+           gruposAcordes.has(id)
+       ) {
+   
+           await actualizarAcordeGrupo(
+   
+               id,
+   
+               notas,
+   
+               octava
+   
+           );
+   
+       } else {
+   
+           await reproducirAcordeGrupo(
+   
+               id,
+   
+               notas,
+   
+               octava
+   
+           );
+   
+       }
    
    }
    
@@ -689,16 +881,90 @@
       ---------------------------------------------------------
    
       Compatibilidad con código anterior.
-   
       --------------------------------------------------------- */
    
    function soltarAcorde(
-       id = "acorde-principal"
+   
+       id =
+           "acorde-principal"
+   
    ) {
    
        soltarAcordeGrupo(
            id
        );
+   
+   
+       /*
+        * Si estamos liberando el grupo utilizado
+        * por las funciones antiguas, limpiamos
+        * también su estado.
+        */
+   
+       if (
+           id ===
+           "acorde-principal"
+       ) {
+   
+           acordeActual = [];
+   
+       }
+   
+   }
+   
+   
+   /* ---------------------------------------------------------
+      Detener todos los sonidos
+      --------------------------------------------------------- */
+   
+   function detenerTodosLosSonidos() {
+   
+       if (!audioContext) {
+           return;
+       }
+   
+   
+       /*
+        * Copiamos los grupos antes de limpiarlos.
+        */
+   
+       const grupos =
+           [...gruposAcordes.values()];
+   
+   
+       /*
+        * Eliminamos todos los grupos.
+        */
+   
+       gruposAcordes.clear();
+   
+   
+       /*
+        * Liberamos todas las voces.
+        */
+   
+       grupos.forEach(
+   
+           voces => {
+   
+               voces.forEach(
+   
+                   voz => {
+   
+                       liberarVoz(
+                           voz
+                       );
+   
+                   }
+   
+               );
+   
+           }
+   
+       );
+   
+   
+       acordeActual = [];
    
    }
    
@@ -710,9 +976,7 @@
    function establecerOctava(octava) {
    
        const nuevaOctava =
-           Number(
-               octava
-           );
+           Number(octava);
    
    
        if (
@@ -736,8 +1000,11 @@
       --------------------------------------------------------- */
    
    function claveNota(
+   
        nota,
+   
        octava
+   
    ) {
    
        return `${nota}${octava}`;
@@ -746,174 +1013,16 @@
    
    
    /* ---------------------------------------------------------
-      Liberar una voz
-      --------------------------------------------------------- */
-   
-   function liberarVoz(voz) {
-   
-       if (
-           !audioContext ||
-           !voz
-       ) {
-   
-           return;
-   
-       }
-   
-   
-       const ahora =
-           audioContext.currentTime;
-   
-   
-       try {
-   
-           /*
-            * Cancelar automatizaciones anteriores.
-            */
-   
-           voz.gain.gain.cancelScheduledValues(
-               ahora
-           );
-   
-   
-           /*
-            * Obtener el volumen actual.
-            */
-   
-           const volumenActual =
-               Math.max(
-   
-                   voz.gain.gain.value,
-   
-                   0.001
-   
-               );
-   
-   
-           voz.gain.gain.setValueAtTime(
-   
-               volumenActual,
-   
-               ahora
-   
-           );
-   
-   
-           /*
-            * Liberación.
-            */
-   
-           voz.gain.gain.exponentialRampToValueAtTime(
-   
-               0.001,
-   
-               ahora +
-               SYNTH_CONFIG.liberacion
-   
-           );
-   
-   
-           /*
-            * Detener el oscilador después
-            * de terminar la liberación.
-            */
-   
-           voz.oscilador.stop(
-   
-               ahora +
-   
-               SYNTH_CONFIG.liberacion +
-   
-               0.05
-   
-           );
-   
-   
-           /*
-            * Retirar la voz de la lista
-            * de osciladores activos.
-            */
-   
-           setTimeout(
-   
-               () => {
-   
-                   const indice =
-                       osciladoresActivos.indexOf(
-                           voz
-                       );
-   
-   
-                   if (
-                       indice !== -1
-                   ) {
-   
-                       osciladoresActivos.splice(
-   
-                           indice,
-   
-                           1
-   
-                       );
-   
-                   }
-   
-               },
-   
-               (
-                   SYNTH_CONFIG.liberacion +
-                   0.1
-               ) * 1000
-   
-           );
-   
-   
-       } catch (error) {
-   
-           console.warn(
-   
-               "Error liberando voz:",
-   
-               error
-   
-           );
-   
-       }
-   
-   }
-   
-   
-   /* ---------------------------------------------------------
       Obtener notas actuales
       ---------------------------------------------------------
    
-      Ahora devuelve todas las notas que están
-      sonando en todos los grupos.
-   
+      Compatibilidad con código anterior.
       --------------------------------------------------------- */
    
    function obtenerNotasActuales() {
    
-       const notas = [];
-   
-   
-       gruposAcordes.forEach(
-           voces => {
-   
-               voces.forEach(
-                   (_, clave) => {
-   
-                       notas.push(
-                           clave
-                       );
-   
-                   }
-               );
-   
-           }
-       );
-   
-   
-       return notas;
+       return [
+           ...acordeActual
+       ];
    
    }

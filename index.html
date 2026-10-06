@@ -13,10 +13,9 @@
 
     <main class="webchord">
 
-        <header class="webchord__header">
+        <!-- <header class="webchord__header">
             <h1>WebChord</h1>
-            <p>Sintetizador de acordes</p>
-        </header>
+        </header>-->
 
 
         <!-- Controles principales -->
@@ -69,92 +68,96 @@
 
         </section>
 
+                <!-- Estado -->
+                <section class="estado">
 
-        <!-- Indicador de tonalidad -->
-        <section class="tonalidad-actual">
-
-            <span>Tonalidad actual</span>
-
-            <strong id="tonalidadActual">C</strong>
-
-        </section>
-
+                    <span id="estadoTexto">
+                        Selecciona un acorde
+                    </span>
+        
+                </section>
 
         <!-- Botones de acordes -->
-        <section class="acordes">
+        <!-- Área principal del instrumento -->
+<section class="instrumento">
 
-            <button class="acorde" data-grado="0">
-                <span class="acorde__numero">1</span>
-                <span class="acorde__nombre">C</span>
-            </button>
+    <!-- Joystick -->
+    <div class="joystick-container">
 
-            <button class="acorde" data-grado="1">
-                <span class="acorde__numero">2</span>
-                <span class="acorde__nombre">Dm</span>
-            </button>
+        <div class="joystick" id="joystick">
 
-            <button class="acorde" data-grado="2">
-                <span class="acorde__numero">3</span>
-                <span class="acorde__nombre">Em</span>
-            </button>
+            <div class="joystick__direcciones">
 
-            <button class="acorde" data-grado="3">
-                <span class="acorde__numero">4</span>
-                <span class="acorde__nombre">F</span>
-            </button>
+                <span class="arriba"></span>
 
-            <button class="acorde" data-grado="4">
-                <span class="acorde__numero">5</span>
-                <span class="acorde__nombre">G</span>
-            </button>
+                <span class="diagonal diagonal-1"></span>
 
-            <button class="acorde" data-grado="5">
-                <span class="acorde__numero">6</span>
-                <span class="acorde__nombre">Am</span>
-            </button>
+                <span class="derecha"></span>
 
-            <button class="acorde" data-grado="6">
-                <span class="acorde__numero">7</span>
-                <span class="acorde__nombre">Bdim</span>
-            </button>
+                <span class="diagonal diagonal-2"></span>
 
-        </section>
+                <span class="abajo"></span>
 
+                <span class="diagonal diagonal-3"></span>
 
-        <!-- Joystick -->
-        <div class="joystick-container">
+                <span class="izquierda"></span>
 
-            <div class="joystick" id="joystick">
-        
-                <div class="joystick__direcciones">
-        
-                    <span class="arriba">↑</span>
-        
-                    <span class="abajo">↓</span>
-        
-                    <span class="izquierda">←</span>
-        
-                    <span class="derecha">→</span>
-        
-                </div>
-        
-        
-                <div class="joystick__palanca" id="joystickPalanca">
-                </div>
-        
+                <span class="diagonal diagonal-4"></span>
+
             </div>
-        
+
+            <div class="joystick__palanca" id="joystickPalanca">
+            </div>
+
         </div>
 
+    </div>
 
-        <!-- Estado -->
-        <section class="estado">
 
-            <span id="estadoTexto">
-                Selecciona un acorde
-            </span>
+    <!-- Botones de acordes -->
+    <section class="acordes">
 
-        </section>
+        <button class="acorde acorde-2" data-grado="1">
+            <span class="acorde__numero">2</span>
+            <span class="acorde__nombre">Dm</span>
+        </button>
+
+        <button class="acorde acorde-4" data-grado="3">
+            <span class="acorde__numero">4</span>
+            <span class="acorde__nombre">F</span>
+        </button>
+
+        <button class="acorde acorde-6" data-grado="5">
+            <span class="acorde__numero">6</span>
+            <span class="acorde__nombre">Am</span>
+        </button>
+
+        <button class="acorde acorde-1" data-grado="0">
+            <span class="acorde__numero">1</span>
+            <span class="acorde__nombre">C</span>
+        </button>
+
+        <button class="acorde acorde-3" data-grado="2">
+            <span class="acorde__numero">3</span>
+            <span class="acorde__nombre">Em</span>
+        </button>
+
+        <button class="acorde acorde-5" data-grado="4">
+            <span class="acorde__numero">5</span>
+            <span class="acorde__nombre">G</span>
+        </button>
+
+        <button class="acorde acorde-7" data-grado="6">
+            <span class="acorde__numero">7</span>
+            <span class="acorde__nombre">Bdim</span>
+        </button>
+
+    </section>
+
+</section>
+
+
+
 
     </main>
 
