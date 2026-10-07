@@ -196,9 +196,9 @@ body {
 .instrumento {
     display: grid;
 
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
 
-    gap: 30px;
+    gap: clamp(20px, 4vw, 40px);
 
     align-items: center;
 
@@ -212,20 +212,20 @@ body {
     display: flex;
 
     justify-content: center;
+    align-items: center;
 
     margin-bottom: 0;
 }
 
 
-/* Botones */
+/* Acordes */
 
 .acordes {
     display: grid;
 
-    grid-template-columns:
-        repeat(12, 1fr);
+    grid-template-columns: repeat(12, 1fr);
 
-    gap: 10px;
+    gap: clamp(6px, 1vw, 10px);
 
     margin-bottom: 0;
 
@@ -233,22 +233,25 @@ body {
 }
 
 
-/* Fila superior: 3 teclas */
+/* Fila superior */
 
 .acorde-2 {
     grid-column: 1 / span 4;
+    grid-row: 1;
 }
 
 .acorde-4 {
     grid-column: 5 / span 4;
+    grid-row: 1;
 }
 
 .acorde-6 {
     grid-column: 9 / span 4;
+    grid-row: 1;
 }
 
 
-/* Fila inferior: 4 teclas */
+/* Fila inferior */
 
 .acorde-1 {
     grid-column: 1 / span 3;
@@ -423,9 +426,9 @@ body {
 .joystick {
     position: relative;
 
-    width: 220px;
+    width: clamp(150px, 22vh, 220px);
 
-    height: 220px;
+    height: clamp(150px, 22vh, 220px);
 
     border-radius: 50%;
 
@@ -631,163 +634,221 @@ body {
     margin-bottom: 20px;
 }
 
-
-/* =========================================================
-   Tablets
-   ========================================================= */
-
-@media (max-width: 700px) {
-
-    body {
-        padding: 12px;
-    }
-
-    .webchord {
-        padding: 20px;
-
-        border-radius: 20px;
-    }
-
-    .controls {
-        grid-template-columns:
-            1fr 1fr;
-    }
-
-    .control:last-child {
-        grid-column:
-            1 / -1;
-    }
-
-    .acordes {
-        grid-template-columns:
-            repeat(4, 1fr);
-    }
-
-}
-
-
 /* =========================================================
    Teléfonos
    ========================================================= */
 
-@media (max-width: 480px) {
+@media (max-width: 700px) and (orientation: landscape) {
 
     body {
-        padding: 0;
+        padding: 8px;
     }
 
     .webchord {
-        min-height: 100vh;
-
-        border-radius: 0;
-
-        border-left: 0;
-        border-right: 0;
-
-        padding: 18px 14px;
+        max-width: none;
+        padding: 14px 20px;
+        border-radius: 16px;
     }
 
     .webchord__header {
-        margin-bottom: 22px;
+        margin-bottom: 12px;
     }
 
     .webchord__header h1 {
-        font-size: 1.65rem;
+        font-size: 1.4rem;
+    }
+
+    .webchord__header p {
+        font-size: 0.8rem;
+        margin-top: 2px;
     }
 
     .controls {
-        grid-template-columns: 1fr;
-
-        gap: 10px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
     }
 
-    .control:last-child {
-        grid-column: auto;
+    .control {
+        gap: 4px;
     }
 
-    .acordes {
-        grid-template-columns:
-            repeat(2, 1fr);
-
-        gap: 10px;
-
-        margin-bottom: 28px;
+    .control label {
+        font-size: 0.7rem;
     }
 
+    .control select {
+        padding: 7px 8px;
+        font-size: 0.9rem;
+    }
+
+    .control input[type="range"] {
+        height: 32px;
+    }
+
+    .instrumento {
+        grid-template-columns: minmax(130px, 22vw) minmax(0, 1fr);
+        gap: 20px;
+        margin-bottom: 14px;
+    }
     .acorde {
-        min-height: 86px;
-    }
+            min-height: clamp(60px, 15vh, 90px);
+        }
 
-    .acorde__nombre {
-        font-size: 1.05rem;
-    }
+        .acorde__nombre {
+            font-size: clamp(0.9rem, 2.5vw, 1.15rem);
+        }
+
+        .estado {
+            min-height: 34px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
 
     .joystick {
-        width: 190px;
+        position: relative;
+    
+        width: min(28vh, 190px);
+        height: min(28vh, 190px);
+    
+        border-radius: 50%;
+    
+        background:
+            radial-gradient(
+                circle,
+                #292e39 0%,
+                #1d2028 65%,
+                #171920 100%
+            );
+    
+        border: 1px solid var(--borde);
+    
+        box-shadow:
+            inset 0 0 30px
+            rgba(0, 0, 0, 0.35),
+            0 10px 25px
+            rgba(0, 0, 0, 0.25);
+    
+        display: flex;
+    
+        align-items: center;
+    
+        justify-content: center;
+    
+        touch-action: none;
+    
+        user-select: none;
+    
+        -webkit-user-select: none;
+    }
+    
+    
+    /* =========================================================
+       Direcciones del joystick
+       ========================================================= */
+    
+       .joystick__direcciones {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+    
+    
+    /* Todas las líneas */
+    
+    .joystick__direcciones span {
+        position: absolute;
+        width: 16px;
+        height: 2px;
+        left: 50%;
+        top: 50%;
+        background: #646b79;
+        border-radius: 2px;
+    }
 
-        height: 190px;
+    .joystick__direcciones .arriba {
+        transform:
+            translate(-50%, -50%)
+            translateY(-64px)
+            rotate(90deg);
+    }
+
+    .joystick__direcciones .diagonal-1 {
+        transform:
+            translate(-50%, -50%)
+            translate(45px, -45px)
+            rotate(-45deg);
+    }
+
+    .joystick__direcciones .derecha {
+        transform:
+            translate(-50%, -50%)
+            translateX(64px);
+    }
+
+    .joystick__direcciones .diagonal-2 {
+        transform:
+            translate(-50%, -50%)
+            translate(45px, 45px)
+            rotate(45deg);
+    }
+
+    .joystick__direcciones .abajo {
+        transform:
+            translate(-50%, -50%)
+            translateY(64px)
+            rotate(90deg);
+    }
+
+    .joystick__direcciones .diagonal-3 {
+        transform:
+            translate(-50%, -50%)
+            translate(-45px, 45px)
+            rotate(-45deg);
+    }
+
+    .joystick__direcciones .izquierda {
+        transform:
+            translate(-50%, -50%)
+            translateX(-65px);
+    }
+
+    .joystick__direcciones .diagonal-4 {
+        transform:
+            translate(-50%, -50%)
+            translate(-45px, -45px)
+            rotate(45deg);
     }
 
     .joystick__palanca {
-        width: 64px;
 
-        height: 64px;
+        width: 48px;
+        height: 48px;
+    
     }
 
-        /* Direcciones del joystick en teléfono */
 
-        .joystick__direcciones .arriba {
-            transform:
-                translate(-50%, -50%)
-                translateY(-68px)
-                rotate(90deg);
-        }
     
-        .joystick__direcciones .diagonal-1 {
-            transform:
-                translate(-50%, -50%)
-                translate(48px, -48px)
-                rotate(-45deg);
-        }
-    
-        .joystick__direcciones .derecha {
-            transform:
-                translate(-50%, -50%)
-                translateX(68px);
-        }
-    
-        .joystick__direcciones .diagonal-2 {
-            transform:
-                translate(-50%, -50%)
-                translate(48px, 48px)
-                rotate(45deg);
-        }
-    
-        .joystick__direcciones .abajo {
-            transform:
-                translate(-50%, -50%)
-                translateY(68px)
-                rotate(90deg);
-        }
-    
-        .joystick__direcciones .diagonal-3 {
-            transform:
-                translate(-50%, -50%)
-                translate(-48px, 48px)
-                rotate(-45deg);
-        }
-    
-        .joystick__direcciones .izquierda {
-            transform:
-                translate(-50%, -50%)
-                translateX(-68px);
-        }
-    
-        .joystick__direcciones .diagonal-4 {
-            transform:
-                translate(-50%, -50%)
-                translate(-48px, -48px)
-                rotate(45deg);
-        }
+}
 
+@media (max-width: 700px) and (orientation: portrait) {
+
+    .webchord {
+        display: none;
+    }
+
+    body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    body::after {
+        content: "Gira el dispositivo para usar WebChord";
+        color: var(--texto-secundario);
+        text-align: center;
+        font-size: 1rem;
+        padding: 30px;
+    }
 }
