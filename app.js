@@ -146,7 +146,7 @@ function mostrarEstado(texto) {
     if (acordesPresionados.size === 0) {
 
         mostrarEstado(
-            "Selecciona un acorde"
+            ""
         );
 
         return;
@@ -1644,7 +1644,7 @@ function iniciarAplicacion() {
     actualizarBotonesAcordes();
 
     mostrarEstado(
-        "Selecciona un acorde"
+        ""
     );
 
 }
